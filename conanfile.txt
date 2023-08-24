@@ -1,0 +1,20 @@
+[requires]
+range-v3/0.12.0
+boost/1.80.0
+nlohmann_json/3.11.2
+
+imgui/cci.20220621+1.88.docking
+implot/0.15
+glfw/3.3.8
+glew/2.2.0
+wiringpi/cci.20210727
+
+[generators]
+cmake
+
+[imports]
+./res/bindings, imgui_impl_glfw.cpp -> ../imgui_backends
+./res/bindings, imgui_impl_opengl2.cpp -> ../imgui_backends
+./res/bindings, imgui_impl_glfw.h -> ../imgui_backends
+./res/bindings, imgui_impl_opengl2.h -> ../imgui_backends
+./res/bindings, imgui_impl_opengl2_loader.h -> ../imgui_backends
