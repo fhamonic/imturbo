@@ -13,6 +13,7 @@ all: $(BUILD_DIR)
 $(BUILD_DIR):
 	@mkdir $(BUILD_DIR) && \
 	mkdir imgui_backends && \
+	mkdir fonts && \
 	cd $(BUILD_DIR) && \
 	conan install .. --build=missing && \
 	cmake -DCMAKE_BUILD_TYPE=Release -DWARNINGS=ON -DCOMPILE_FOR_NATIVE=ON -DCOMPILE_WITH_LTO=ON ..
@@ -20,3 +21,4 @@ $(BUILD_DIR):
 clean:
 	@rm -rf $(BUILD_DIR)
 	@rm -rf imgui_backends
+	@rm -rf fonts

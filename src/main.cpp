@@ -103,10 +103,8 @@ int main(int, char **) {
     // - Remember that in C/C++ if you want to include a backslash \ in a string
     // literal you need to write a double backslash \\ !
     // io.Fonts->AddFontDefault();
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+    ImFont *font = io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 17.0f);
+    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 34.0f);
     // ImFont* font =
     // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
     // NULL, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != NULL);
@@ -123,35 +121,9 @@ int main(int, char **) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::PushFont(font);
         controller.show(ImVec2(0, 0),
                         ImVec2(io.DisplaySize.x, io.DisplaySize.y));
-
-//     bool p = false;
-//     auto p_open = &p;
-    
-// static bool use_work_area = true;
-//     static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-//     // We demonstrate using the full viewport area or the work area (without menu-bars, task-bars etc.)
-//     // Based on your use case you may want one or the other.
-//     const ImGuiViewport* viewport = ImGui::GetMainViewport();
-//     ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
-//     ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize : viewport->Size);
-//     if (ImGui::Begin("Example: Fullscreen window", p_open, flags))
-//     {
-//         ImGui::Checkbox("Use work area instead of main area", &use_work_area);
-//         ImGui::SameLine();
-//         ImGui::CheckboxFlags("ImGuiWindowFlags_NoBackground", &flags, ImGuiWindowFlags_NoBackground);
-//         ImGui::CheckboxFlags("ImGuiWindowFlags_NoDecoration", &flags, ImGuiWindowFlags_NoDecoration);
-//         ImGui::Indent();
-//         ImGui::CheckboxFlags("ImGuiWindowFlags_NoTitleBar", &flags, ImGuiWindowFlags_NoTitleBar);
-//         ImGui::CheckboxFlags("ImGuiWindowFlags_NoCollapse", &flags, ImGuiWindowFlags_NoCollapse);
-//         ImGui::CheckboxFlags("ImGuiWindowFlags_NoScrollbar", &flags, ImGuiWindowFlags_NoScrollbar);
-//         ImGui::Unindent();
-//         if (p_open && ImGui::Button("Close this window"))
-//             *p_open = false;
-//     }
-//     ImGui::End();
-
 
         // Rendering
         ImGui::Render();

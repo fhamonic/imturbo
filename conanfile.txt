@@ -18,3 +18,4 @@ cmake
 ./res/bindings, imgui_impl_glfw.h -> ../imgui_backends
 ./res/bindings, imgui_impl_opengl2.h -> ../imgui_backends
 ./res/bindings, imgui_impl_opengl2_loader.h -> ../imgui_backends
+./res/fonts, Roboto-Medium.ttf -> ../fonts

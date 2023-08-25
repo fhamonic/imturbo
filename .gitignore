@@ -3,4 +3,5 @@
 *.log
 *.data
 /imgui_backends
+/fonts
 imgui.ini

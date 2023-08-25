@@ -1,3 +1,6 @@
 [submodule "dependencies/ImGuiFileDialog"]
 	path = dependencies/ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "dependencies/imgui_toggle"]
+	path = dependencies/imgui_toggle
+	url = https://github.com/cmdwtf/imgui_toggle
