@@ -2,6 +2,7 @@
 #define IMTURBO_CONTROLLER_HPP
 
 #include <math.h>
+#include <string.h>
 
 #include <imgui.h>
 #include <implot.h>
