@@ -56,7 +56,7 @@ public:
     Controller()
         : oil_pressure_data("Oil pressure")
         , boost_pressure_data("Boost pressure")
-        , turbine_inlet_temperature_data("Turbine Inlet temp.")
+        , turbine_inlet_temperature_data("Turbine inlet temp.")
         , oil_pump_speed_data("Oil pump speed")
         , gas_valve_position_data("Gas valve pos.") {}
 
@@ -73,6 +73,8 @@ public:
         oil_pressure_data.add(t, mouse.x * 0.002f);
         boost_pressure_data.add(t, mouse.y * 0.002f);
         turbine_inlet_temperature_data.add(t, (mouse.x + mouse.y) * 0.50f);
+        oil_pump_speed_data.add(t, mouse.x * 0.006f);
+        gas_valve_position_data.add(t, mouse.y * 0.0005f);
 
         static ImPlotAxisFlags xflags =
             ImPlotAxisFlags_Opposite | ImPlotAxisFlags_NoSideSwitch |
@@ -122,7 +124,7 @@ public:
         // static ImGuiToggleConfig config = ImGuiTogglePresets::MaterialStyle(3.0f);
         static ImGuiToggleConfig config = ImGuiTogglePresets::iOSStyle(0.9f);
         static bool b;
-        ImGui::SetCursorPos(ImVec2{15.0f, 205.0f});
+        ImGui::SetCursorPos(ImVec2{20.0f, 207.0f});
 
         ImFont* headerFont = ImGui::GetIO().Fonts->Fonts[1];
         ImGui::PushFont(headerFont);
@@ -138,7 +140,7 @@ public:
         if(ImPlot::BeginPlot("##actuators_plot", ImVec2(-1, 120),
                              ImPlotFlags_NoFrame | ImPlotFlags_NoInputs)) {
             ImPlot::SetupAxes("time (s)", "speed (rev/s)", xflags, yflags);
-            ImPlot::SetupAxisLimits(ImAxis_X1, t - history/2, t,
+            ImPlot::SetupAxisLimits(ImAxis_X1, t - history/1.95f, t,
                                     ImGuiCond_Always);
             ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 20);
 
