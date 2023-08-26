@@ -1,8 +1,8 @@
-#ifndef IMTURBO_CONTROLLER_HPP
-#define IMTURBO_CONTROLLER_HPP
+#ifndef IMTURBO_CONTROLLER_GUI_HPP
+#define IMTURBO_CONTROLLER_GUI_HPP
 
-#include <math.h>
 #include <string.h>
+#include <cmath>
 
 #include <imgui.h>
 #include <implot.h>
@@ -11,61 +11,43 @@
 #include "imgui_toggle/imgui_toggle.h"
 #include "imgui_toggle/imgui_toggle_presets.h"
 
+#include "utils/app_log.hpp"
 #include "utils/imvec_operators.hpp"
+#include "utils/scrolling_plot_buffer.hpp"
+
+#include "oil_pump_controller.hpp"
 
 namespace ImTurbo {
-// utility structure for realtime plot
 
-class ScrollingBuffer {
+class ControllerGUI {
 private:
-    std::string _name;
-    int _offset;
-    ImVector<ImVec2> _data;
-
-public:
-    ScrollingBuffer(std::string name, int max_size = 2000)
-        : _name(name), _offset(0) {
-        _data.resize(max_size, ImVec2{0, 0});
-    }
-    void add(ImVec2 p) {
-        _data[_offset++] = p;
-        if(_offset == _data.size()) _offset = 0;
-    }
-    void add(float x, float y) { add(ImVec2{x, y}); }
-
-    void PlotShaded() {
-        ImPlot::PlotShaded(_name.c_str(), &_data[0].x, &_data[0].y,
-                           _data.size(), -INFINITY, 0, _offset, sizeof(ImVec2));
-    }
-    void PlotLine() {
-        ImPlot::PlotLine(_name.c_str(), &_data[0].x, &_data[0].y, _data.size(),
-                         0, _offset, sizeof(ImVec2));
-    }
-};
-
-class Controller {
-private:
-    ScrollingBuffer oil_pressure_data;
-    ScrollingBuffer boost_pressure_data;
-    ScrollingBuffer turbine_inlet_temperature_data;
-    ScrollingBuffer oil_pump_speed_data;
-    ScrollingBuffer gas_valve_position_data;
+    ScrollingPlotBuffer oil_pressure_data;
+    ScrollingPlotBuffer boost_pressure_data;
+    ScrollingPlotBuffer turbine_inlet_temperature_data;
+    ScrollingPlotBuffer oil_pump_speed_data;
+    ScrollingPlotBuffer gas_valve_position_data;
     float history = 30.0;
+    AppLog app_log;
+
+    OilPumpController oil_pump_controller;
 
 public:
-    Controller()
+    ControllerGUI()
         : oil_pressure_data("Oil pressure")
         , boost_pressure_data("Boost pressure")
         , turbine_inlet_temperature_data("Turbine inlet temp.")
         , oil_pump_speed_data("Oil pump speed")
-        , gas_valve_position_data("Gas valve pos.") {}
+        , gas_valve_position_data("Gas valve pos.")
+        , oil_pump_controller(app_log) {}
 
-    void init() {}
     void show_settings() {
         ImGui::SliderFloat("Scrolling plot history", &history, 1, 30, "%.1f s");
     }
 
     void show(ImVec2 pos, ImVec2 size) {
+
+oil_pump_controller.log();
+
         static float t = 0;
         t += ImGui::GetIO().DeltaTime;
 
@@ -121,26 +103,26 @@ public:
 
             ImPlot::EndPlot();
         }
-        // static ImGuiToggleConfig config = ImGuiTogglePresets::MaterialStyle(3.0f);
+        // static ImGuiToggleConfig config =
+        // ImGuiTogglePresets::MaterialStyle(3.0f);
         static ImGuiToggleConfig config = ImGuiTogglePresets::iOSStyle(0.9f);
         static bool b;
         ImGui::SetCursorPos(ImVec2{20.0f, 207.0f});
 
-        ImFont* headerFont = ImGui::GetIO().Fonts->Fonts[1];
+        ImFont * headerFont = ImGui::GetIO().Fonts->Fonts[1];
         ImGui::PushFont(headerFont);
         ImGui::LabelText("##start_label", "Start Engine:");
         ImGui::PopFont();
-        
-        ImGui::SetCursorPos(ImVec2{200.0f, 170.0f + 120.0F/2 - config.Size.y/2});
-        if(ImGui::Toggle("##toggle_oil_pump", &b, config)) {
-            // if(pas autorisé à éteindre)
-            //     b=true;
-        }
-        ImGui::SetCursorPos(ImVec2{size.x/2 - config.Size.x + 80, 170.0F});
+
+        ImGui::SetCursorPos(
+            ImVec2{200.0f, 170.0f + 120.0F / 2 - config.Size.y / 2});
+        if(ImGui::Toggle("##toggle_oil_pump", &b, config))
+            ;
+        ImGui::SetCursorPos(ImVec2{size.x / 2 - config.Size.x + 80, 170.0F});
         if(ImPlot::BeginPlot("##actuators_plot", ImVec2(-1, 120),
                              ImPlotFlags_NoFrame | ImPlotFlags_NoInputs)) {
             ImPlot::SetupAxes("time (s)", "speed (rev/s)", xflags, yflags);
-            ImPlot::SetupAxisLimits(ImAxis_X1, t - history/1.95f, t,
+            ImPlot::SetupAxisLimits(ImAxis_X1, t - history / 1.95f, t,
                                     ImGuiCond_Always);
             ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 20);
 
@@ -158,10 +140,12 @@ public:
             ImPlot::EndPlot();
         }
 
+        app_log.Draw();
+
         ImGui::End();
     }
 };
 
 }  // namespace ImTurbo
 
-#endif  // IMTURBO_CONTROLLER_HPP
+#endif  // IMTURBO_CONTROLLER_GUI_HPP

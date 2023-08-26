@@ -32,7 +32,7 @@ static void glfw_error_callback(int error, const char * description) {
 #include <memory>
 #include <optional>
 
-#include "controller.hpp"
+#include "controller_gui.hpp"
 
 int main(int, char **) {
     // Setup window
@@ -111,7 +111,7 @@ int main(int, char **) {
 
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ImTurbo::Controller controller;
+    ImTurbo::ControllerGUI controller;
 
     // Main loop
     while(!glfwWindowShouldClose(window)) {
