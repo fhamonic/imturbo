@@ -14,19 +14,19 @@ def perrln(s):
 
 ## Searching odrive connection
 try:
-    odrv0 = odrive.find_any(timeout=10)
+    odrv0 = odrive.find_any()
 except:
     poutln(0)
     exit()
     
 odrv_connected = True
-poutln(1)
 ordv_serial_number = odrv0._serial_number
 poutln(ordv_serial_number)
 
 def reconnect(x):
     global odrv_connected
     odrv_connected = False
+    perrln(0)
 
 odrv0._on_lost.add_done_callback(reconnect)
 
@@ -44,12 +44,15 @@ for line in sys.stdin:
     while True:
         if not odrv_connected:
             odrv0 = odrive.find_any(serial_number=ordv_serial_number)
+            odrv0._on_lost.add_done_callback(reconnect)
             odrv_connected = True
+            perrln(1)
         try:
             match parts:
                 case ["v"]:
+                    voltage = odrv0.vbus_voltage
                     poutln(1)
-                    poutln(odrv0.vbus_voltage)
+                    poutln(voltage)
                 case ["s", 0, speed]:
                     odrv0.axis0.controller.input_vel = speed
                     poutln(1)

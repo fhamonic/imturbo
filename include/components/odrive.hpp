@@ -32,24 +32,20 @@ private:
         std::string, std::optional<std::function<void(const std::string &)>>>>
         _async_commands;
 
-    std::jthread _thread;
+    std::jthread _command_thread;
+    std::jthread _connection_thread;
 
 public:
     Odrive(AppLog & app_log)
         : _c("python odrive_interface/interface.py", bp::std_out > _out,
              bp::std_err > _err, bp::std_in < _in)
         , _app_log(app_log)
-        , _thread([this](std::stop_token stoken) {
+        , _command_thread([this](std::stop_token stoken) {
             std::string buffer;
             bool check;
 
             // Waiting for odrive connection
             _app_log.AddLog("[Odrive] Searching for odrive connection\n");
-            _out >> check;
-            if(!check) {
-                _app_log.AddLog("[Odrive] ERR: Search timed out\n");
-                return;
-            }
             _out >> buffer;
             _app_log.AddLog("[Odrive] Found: %s\n", buffer.c_str());
 
@@ -66,9 +62,13 @@ public:
                 std::unique_lock lk(_m);
                 _cv.wait(lk);
                 while(!_async_commands.empty()) {
-                    auto & [command, opt_callback] = _async_commands.front();
+                    auto [command, opt_callback] = _async_commands.front();
+                    _async_commands.pop();
+                    // do not hold the lock because below are blocking I/O
+                    lk.unlock();
                     _in << command << std::endl;
                     _out >> check;
+                    if(stoken.stop_requested()) return;
                     if(!check) {
                         _app_log.AddLog("[Odrive] ERR: '%s' failed\n",
                                         command.c_str());
@@ -77,17 +77,32 @@ public:
                     }
                     if(opt_callback) {
                         _out >> buffer;
+                        if(stoken.stop_requested()) return;
                         opt_callback.value()(buffer);
                     }
-                    _async_commands.pop();
+                    lk.lock();
                 }
                 lk.unlock();
+            }
+        })
+        , _connection_thread([this](std::stop_token stoken) {
+            bool connected;
+            for(;;) {
+                _err >> connected;
+                if(stoken.stop_requested()) return;
+                if(!connected) {
+                    _app_log.AddLog("[Odrive] WARN: Odrive connection lost!\n");
+                } else {
+                    _app_log.AddLog("[Odrive] WARN: Odrive reconnected!\n");
+                }
             }
         }) {}
 
     ~Odrive() {
-        _c.terminate();
+        _command_thread.request_stop();
+        _connection_thread.request_stop();
         _cv.notify_one();
+        _c.terminate();
     }
 
     void send_command(const std::string & cmd,

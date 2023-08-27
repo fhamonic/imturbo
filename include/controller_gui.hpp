@@ -94,7 +94,9 @@ public:
             ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 4);
 
             ImPlot::SetupAxis(ImAxis_Y2, "temperature (°C)");
-            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 1000);
+            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 1200);
+            static double tit_ticks[]{0, 300, 600, 900, 1200};
+            ImPlot::SetupAxisTicks(ImAxis_Y2, tit_ticks, 5);
 
             ImPlot::SetAxis(ImAxis_Y1);
             ImPlot::SetNextFillStyle(ImVec4{0.33f, 0.66f, 1.0f, 0.5f});
@@ -108,14 +110,14 @@ public:
 
             ImDrawList * draw_list = ImPlot::GetPlotDrawList();
             draw_list->AddLine(
-                ImPlot::PlotToPixels(t - history, 1000.0f, IMPLOT_AUTO,
+                ImPlot::PlotToPixels(t - history, 900.0f, IMPLOT_AUTO,
                                      ImAxis_Y2),
-                ImPlot::PlotToPixels(t, 1000.0f, IMPLOT_AUTO, ImAxis_Y2),
-                ImGui::GetColorU32(ImVec4{1.0f, 0.0f, 0.0f, 0.25f}), 2.0f);
+                ImPlot::PlotToPixels(t, 900.0f, IMPLOT_AUTO, ImAxis_Y2),
+                ImGui::GetColorU32(ImVec4{1.0f, 0.0f, 0.0f, 0.25f}), 3.0f);
             draw_list->AddLine(
                 ImPlot::PlotToPixels(t - history, 2.0f, IMPLOT_AUTO, ImAxis_Y1),
                 ImPlot::PlotToPixels(t, 2.0f, IMPLOT_AUTO, ImAxis_Y1),
-                ImGui::GetColorU32(ImVec4{0.33f, 0.66f, 1.0f, 0.25f}), 2.0f);
+                ImGui::GetColorU32(ImVec4{0.33f, 0.66f, 1.0f, 0.25f}), 3.0f);
 
             ImPlot::EndPlot();
         }
