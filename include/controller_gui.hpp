@@ -15,7 +15,8 @@
 #include "utils/imvec_operators.hpp"
 #include "utils/scrolling_plot_buffer.hpp"
 
-#include "oil_pump_controller.hpp"
+#include "components/odrive.hpp"
+#include "components/oil_pump.hpp"
 
 namespace ImTurbo {
 
@@ -26,10 +27,14 @@ private:
     ScrollingPlotBuffer turbine_inlet_temperature_data;
     ScrollingPlotBuffer oil_pump_speed_data;
     ScrollingPlotBuffer gas_valve_position_data;
+    ScrollingPlotBuffer spark_plug_state_data;
     float history = 30.0;
     AppLog app_log;
 
-    OilPumpController oil_pump_controller;
+    float voltage = 0.0f;
+
+    Odrive odrive;
+    OilPump oil_pump;
 
 public:
     ControllerGUI()
@@ -38,15 +43,18 @@ public:
         , turbine_inlet_temperature_data("Turbine inlet temp.")
         , oil_pump_speed_data("Oil pump speed")
         , gas_valve_position_data("Gas valve pos.")
-        , oil_pump_controller(app_log) {}
+        , spark_plug_state_data("Spark plug state")
+        , odrive(app_log)
+        , oil_pump(app_log, odrive) {}
 
     void show_settings() {
         ImGui::SliderFloat("Scrolling plot history", &history, 1, 30, "%.1f s");
     }
 
     void show(ImVec2 pos, ImVec2 size) {
-
-oil_pump_controller.log();
+        odrive.send_command("v", [this](const std::string & s) {
+            voltage = std::stof(s);
+        });
 
         static float t = 0;
         t += ImGui::GetIO().DeltaTime;
@@ -55,8 +63,16 @@ oil_pump_controller.log();
         oil_pressure_data.add(t, mouse.x * 0.002f);
         boost_pressure_data.add(t, mouse.y * 0.002f);
         turbine_inlet_temperature_data.add(t, (mouse.x + mouse.y) * 0.50f);
-        oil_pump_speed_data.add(t, mouse.x * 0.006f);
+        // oil_pump_speed_data.add(t, mouse.x * 0.006f);
         gas_valve_position_data.add(t, mouse.y * 0.0005f);
+        spark_plug_state_data.add(t, mouse.x < mouse.y);
+
+        // oil_pressure_data.add(t, oil_pressure_sensor.get_pressure());
+        // boost_pressure_data.add(t, boost_pressure_sensor.get_pressure());
+        // turbine_inlet_temperature_data.add(t, tit_sensor.get_temperature());
+        oil_pump_speed_data.add(t, oil_pump.get_speed());
+        // gas_valve_position_data.add(t, mouse.y * 0.0005f);
+        // spark_plug_state_data.add(t, mouse.x < mouse.y);
 
         static ImPlotAxisFlags xflags =
             ImPlotAxisFlags_Opposite | ImPlotAxisFlags_NoSideSwitch |
@@ -75,19 +91,19 @@ oil_pump_controller.log();
             ImPlot::SetupAxes("time (s)", "pressure (bar)", xflags, yflags);
             ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t,
                                     ImGuiCond_Always);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 3.5);
+            ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 4);
 
             ImPlot::SetupAxis(ImAxis_Y2, "temperature (°C)");
-            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 1400);
+            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 1000);
 
             ImPlot::SetAxis(ImAxis_Y1);
             ImPlot::SetNextFillStyle(ImVec4{0.33f, 0.66f, 1.0f, 0.5f});
             boost_pressure_data.PlotShaded();
-            ImPlot::SetNextLineStyle(ImVec4{1.0f, 1.0f, 0.25f, 0.75f}, 2.50f);
+            ImPlot::SetNextLineStyle(ImVec4{1.0f, 1.0f, 0.25f, 1.0f}, 3.0f);
             oil_pressure_data.PlotLine();
 
             ImPlot::SetAxis(ImAxis_Y2);
-            ImPlot::SetNextLineStyle(ImVec4{1.0f, 0.0f, 0.0f, 0.75f}, 2.50f);
+            ImPlot::SetNextLineStyle(ImVec4{1.0f, 0.0f, 0.0f, 1.0f}, 3.0f);
             turbine_inlet_temperature_data.PlotLine();
 
             ImDrawList * draw_list = ImPlot::GetPlotDrawList();
@@ -130,11 +146,13 @@ oil_pump_controller.log();
             ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 1);
 
             ImPlot::SetAxis(ImAxis_Y1);
-            ImPlot::SetNextLineStyle(ImVec4{0.5f, 1.0f, 0.5f, 0.75f}, 2.50f);
+            ImPlot::SetNextLineStyle(ImVec4{0.5f, 1.0f, 0.5f, 1.0f}, 3.0f);
             oil_pump_speed_data.PlotLine();
 
             ImPlot::SetAxis(ImAxis_Y2);
-            ImPlot::SetNextLineStyle(ImVec4{0.75f, 0.25f, 0.25f, 0.75f}, 2.50f);
+            ImPlot::SetNextFillStyle(ImVec4{0.5f, 1.0f, 1.0f, 0.5f});
+            spark_plug_state_data.PlotShaded();
+            ImPlot::SetNextLineStyle(ImVec4{0.75f, 0.33f, 0.33f, 1.0f}, 3.0f);
             gas_valve_position_data.PlotLine();
 
             ImPlot::EndPlot();

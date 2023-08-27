@@ -1,13 +1,11 @@
 [requires]
-range-v3/0.12.0
 boost/1.80.0
-nlohmann_json/3.11.2
+wiringpi/cci.20210727
 
 imgui/cci.20220621+1.88.docking
 implot/0.15
 glfw/3.3.8
 glew/2.2.0
-wiringpi/cci.20210727
 
 [generators]
 cmake

@@ -37,6 +37,6 @@ file(GLOB DEPEDENCIES_CPP dependencies/ImGuiFileDialog/*.cpp dependencies/imgui_
 add_executable(imturbo src/main.cpp imgui_backends/imgui_impl_glfw.cpp imgui_backends/imgui_impl_opengl2.cpp ${DEPEDENCIES_CPP})
 target_include_directories(imturbo PUBLIC include imgui_backends dependencies)
 target_link_libraries(imturbo PUBLIC CONAN_PKG::glfw CONAN_PKG::glew CONAN_PKG::imgui CONAN_PKG::implot)
+target_link_libraries(imturbo PUBLIC CONAN_PKG::boost)
 target_link_libraries(imturbo PUBLIC CONAN_PKG::wiringpi)
-target_link_libraries(imturbo PUBLIC CONAN_PKG::boost CONAN_PKG::nlohmann_json)
 

@@ -2,6 +2,7 @@
 #define IMTURBO_APP_LOG_HPP
 
 #include <cmath>
+#include <mutex>
 #include <string>
 
 #include <imgui.h>
@@ -9,13 +10,16 @@
 
 namespace ImTurbo {
 
-struct AppLog {
+class AppLog {
+private:
+    std::mutex _mutex;
     ImGuiTextBuffer Buf;
     ImGuiTextFilter Filter;
     ImVector<int> LineOffsets;  // Index to lines offset. We maintain this with
                                 // AddLog() calls.
     bool AutoScroll;            // Keep scrolling if already at the bottom.
 
+public:
     AppLog() {
         AutoScroll = true;
         Clear();
@@ -28,6 +32,7 @@ struct AppLog {
     }
 
     void AddLog(const char * fmt, ...) IM_FMTARGS(2) {
+        _mutex.lock();
         int old_size = Buf.size();
         va_list args;
         va_start(args, fmt);
@@ -35,6 +40,7 @@ struct AppLog {
         va_end(args);
         for(int new_size = Buf.size(); old_size < new_size; old_size++)
             if(Buf[old_size] == '\n') LineOffsets.push_back(old_size + 1);
+        _mutex.unlock();
     }
 
     void Draw() {
