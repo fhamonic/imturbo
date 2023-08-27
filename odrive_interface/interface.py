@@ -13,12 +13,22 @@ def perrln(s):
     sys.stderr.flush()
 
 ## Searching odrive connection
-odrv0 = odrive.find_any(timeout=10)
-if odrv0 == None:
+try:
+    odrv0 = odrive.find_any(timeout=10)
+except:
     poutln(0)
     exit()
+    
+odrv_connected = True
 poutln(1)
-poutln(odrv0._serial_number)
+ordv_serial_number = odrv0._serial_number
+poutln(ordv_serial_number)
+
+def reconnect(x):
+    global odrv_connected
+    odrv_connected = False
+
+odrv0._on_lost.add_done_callback(reconnect)
 
 ## Waiting motor calibration
 # t0 = time.time()
@@ -31,16 +41,23 @@ poutln(odrv0._serial_number)
 
 for line in sys.stdin:
     parts = line[:-1].split(' ')
-    match parts:
-        case ["v"]:
-            poutln(1)
-            poutln(odrv0.vbus_voltage)
-        case ["s", 0, speed]:
-            odrv0.axis0.controller.input_vel = speed
-            poutln(1)
-        case ["s", 1, speed]:
-            odrv0.axis1.controller.input_vel = speed
-            poutln(1)
-        case _:
-            print(parts)
-            poutln(0)
+    while True:
+        if not odrv_connected:
+            odrv0 = odrive.find_any(serial_number=ordv_serial_number)
+            odrv_connected = True
+        try:
+            match parts:
+                case ["v"]:
+                    poutln(1)
+                    poutln(odrv0.vbus_voltage)
+                case ["s", 0, speed]:
+                    odrv0.axis0.controller.input_vel = speed
+                    poutln(1)
+                case ["s", 1, speed]:
+                    odrv0.axis1.controller.input_vel = speed
+                    poutln(1)
+                case _:
+                    poutln(0)
+            break
+        except:
+            continue
