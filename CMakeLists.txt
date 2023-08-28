@@ -11,22 +11,14 @@ project(
 # ################### Options ####################
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CONAN_DISABLE_CHECK_COMPILER ON)
 
-option(WARNINGS "" OFF)
-option(HARDCORE_WARNINGS "" OFF)
-option(COMPILE_FOR_NATIVE "" OFF)
-option(COMPILE_WITH_LTO "" OFF)
-
-set(WARNINGS_LIST "-Wall;-Wextra;")
-set(HARDCORE_WARNINGS_LIST
-    "-Wall;-Wextra;-Wshadow;-Wpedantic;-Wnon-virtual-dtor;-Wold-style-cast;-Wcast-align;-Wunused;-Woverloaded-virtual;-Wpedantic;-Wconversion;-Wsign-conversion;-Wmisleading-indentation;-Wduplicated-cond;-Wduplicated-branches;-Wlogical-op;-Wnull-dereference;-Wuseless-cast;-Wdouble-promotion;-Wformat=2;-Wlifetime"
-)
+option(OPTIMIZE_FOR_NATIVE "" OFF)
 
 # ################### Modules ####################
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(GNUInstallDirs)
-include(CMakeBuildTypeUtils)
+include(CompilerWarnings)
+include(CompilerOptimizations)
 
 # ################### Packages ####################
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -38,5 +30,6 @@ add_executable(imturbo src/main.cpp imgui_backends/imgui_impl_glfw.cpp imgui_bac
 target_include_directories(imturbo PUBLIC include imgui_backends dependencies)
 target_link_libraries(imturbo PUBLIC CONAN_PKG::glfw CONAN_PKG::glew CONAN_PKG::imgui CONAN_PKG::implot)
 target_link_libraries(imturbo PUBLIC CONAN_PKG::boost)
-target_link_libraries(imturbo PUBLIC CONAN_PKG::wiringpi)
+set_project_warnings(imturbo)
+set_project_optimizations(imturbo)
 

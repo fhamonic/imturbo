@@ -6,8 +6,7 @@
 #include <cmath>
 
 #include <imgui.h>
-#include <implot.h>
-#include <wiringPi.h>
+// #include <implot.h> pragma once fails
 
 #include "imgui_toggle/imgui_toggle.h"
 #include "imgui_toggle/imgui_toggle_presets.h"
@@ -47,11 +46,6 @@ public:
         , spark_plug_state_data("Spark plug state")
         , odrive(app_log)
         , oil_pump(app_log, odrive) {
-            // wiringPiSetup();
-            // pinMode (0, OUTPUT);
-            // digitalWrite (0, HIGH);
-            // digitalWrite (0, LOW);
-            // analogRead(0);
         }
 
     void show_settings() {

@@ -1,6 +1,5 @@
 [requires]
 boost/1.80.0
-wiringpi/cci.20210727
 
 imgui/cci.20220621+1.88.docking
 implot/0.15

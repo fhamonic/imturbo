@@ -16,7 +16,7 @@ $(BUILD_DIR):
 	mkdir fonts && \
 	cd $(BUILD_DIR) && \
 	conan install .. --build=missing && \
-	cmake -DCMAKE_BUILD_TYPE=Release -DWARNINGS=ON -DCOMPILE_FOR_NATIVE=ON -DCOMPILE_WITH_LTO=ON ..
+	cmake -DCMAKE_BUILD_TYPE=Release -DOPTIMIZE_FOR_NATIVE=ON  ..
 
 clean:
 	@rm -rf $(BUILD_DIR)

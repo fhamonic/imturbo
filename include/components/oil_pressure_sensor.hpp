@@ -4,8 +4,6 @@
 #include <atomic>
 #include <thread>
 
-#include <wiringPi.h>
-
 #include "utils/app_log.hpp"
 
 namespace ImTurbo {
