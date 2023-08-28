@@ -1,7 +1,8 @@
 #ifndef IMTURBO_CONTROLLER_GUI_HPP
 #define IMTURBO_CONTROLLER_GUI_HPP
 
-#include <string.h>
+#include <atomic>
+#include <string>
 #include <cmath>
 
 #include <imgui.h>
@@ -31,7 +32,7 @@ private:
     float history = 30.0;
     AppLog app_log;
 
-    float voltage = 0.0f;
+    std::atomic<float> voltage = 0.0f;
 
     Odrive odrive;
     OilPump oil_pump;
@@ -45,7 +46,13 @@ public:
         , gas_valve_position_data("Gas valve pos.")
         , spark_plug_state_data("Spark plug state")
         , odrive(app_log)
-        , oil_pump(app_log, odrive) {}
+        , oil_pump(app_log, odrive) {
+            // wiringPiSetup();
+            // pinMode (0, OUTPUT);
+            // digitalWrite (0, HIGH);
+            // digitalWrite (0, LOW);
+            // analogRead(0);
+        }
 
     void show_settings() {
         ImGui::SliderFloat("Scrolling plot history", &history, 1, 30, "%.1f s");

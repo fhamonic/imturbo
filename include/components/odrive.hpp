@@ -1,9 +1,7 @@
 #ifndef IMTURBO_ODRIVE_HPP
 #define IMTURBO_ODRIVE_HPP
 
-#include <atomic>
 #include <functional>
-#include <iostream>
 #include <optional>
 #include <queue>
 #include <string>

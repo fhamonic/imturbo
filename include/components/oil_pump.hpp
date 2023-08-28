@@ -1,14 +1,7 @@
 #ifndef IMTURBO_OIL_PUMP_HPP
 #define IMTURBO_OIL_PUMP_HPP
 
-#include <atomic>
-#include <iostream>
 #include <string>
-
-#include <wiringPi.h>
-#include <boost/asio.hpp>
-#include <boost/process.hpp>
-namespace bp = boost::process;
 
 #include "components/odrive.hpp"
 #include "utils/app_log.hpp"
@@ -26,9 +19,10 @@ public:
         : _app_log(app_log), _odrive(odrive), _oil_pump_speed(0.0f) {}
 
     void set_speed(float speed) {
-        _odrive.send_command("v 0 " + std::to_string(speed));
+        _oil_pump_speed = speed;
+        _odrive.send_command("v 0 " + std::to_string(_oil_pump_speed));
     }
-    float get_speed() { return _oil_pump_speed; }
+    float get_speed() const { return _oil_pump_speed; }
 };
 
 }  // namespace ImTurbo
