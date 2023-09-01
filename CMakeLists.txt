@@ -27,13 +27,14 @@ find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Poco REQUIRED)
+find_package(libserial REQUIRED)
 
 # ################### ImTurbo #####################
 file(GLOB DEPEDENCIES_CPP dependencies/ImGuiFileDialog/*.cpp dependencies/imgui_toggle/*.cpp)
 add_executable(imturbo src/main.cpp imgui_backends/imgui_impl_glfw.cpp imgui_backends/imgui_impl_opengl2.cpp ${DEPEDENCIES_CPP})
 target_include_directories(imturbo PUBLIC include imgui_backends dependencies)
 target_link_libraries(imturbo PUBLIC glfw GLEW::GLEW imgui::imgui implot::implot)
-target_link_libraries(imturbo PUBLIC Boost::boost Poco::Poco)
+target_link_libraries(imturbo PUBLIC Poco::Poco libserial::libserial)
 set_project_warnings(imturbo)
 set_project_optimizations(imturbo)
 

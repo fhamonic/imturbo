@@ -11,8 +11,6 @@ all: $(BUILD_DIR)
 	cmake --build . --config Release --parallel $(CPUS)
 
 $(BUILD_DIR):
-	mkdir imgui_backends
-	mkdir fonts
 	conan install . -of=$(BUILD_DIR) -b=missing
 	cd $(BUILD_DIR) && \
 	cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release

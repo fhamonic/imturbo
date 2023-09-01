@@ -4,7 +4,6 @@
         "conan": {}
     },
     "include": [
-        "/home/plaiseek/Projects/imturbo/build/CMakePresets.json",
-        "/home/plaiseek/Projects/imturbo/conan-build/CMakePresets.json"
+        "/home/plaiseek/Projects/imturbo/build/CMakePresets.json"
     ]
 }

@@ -1,15 +1,13 @@
 #ifndef IMTURBO_ODRIVE_HPP
 #define IMTURBO_ODRIVE_HPP
 
+#include <condition_variable>
 #include <functional>
 #include <optional>
 #include <queue>
 #include <string>
 #include <thread>
 #include <utility>
-
-#include <boost/process.hpp>
-namespace bp = boost::process;
 
 #include <Poco/PipeStream.h>
 #include <Poco/Process.h>
@@ -20,16 +18,14 @@ namespace ImTurbo {
 
 class Odrive {
 private:
-    bp::opstream _in;
-    bp::ipstream _out;
-    bp::ipstream _err;
-    bp::child _c;
-
+    Poco::Pipe inPipe;
     Poco::Pipe outPipe;
     Poco::Pipe errPipe;
-    Poco::Pipe inPipe;
     Poco::Process::Args args;
     Poco::ProcessHandle ph;
+    Poco::PipeOutputStream inPipeStream;
+    Poco::PipeInputStream outPipeStream;
+    Poco::PipeInputStream errPipeStream;
 
     AppLog & _app_log;
 
@@ -44,11 +40,12 @@ private:
 
 public:
     Odrive(AppLog & app_log)
-        : _c("python3.10 odrive_interface/interface.py", bp::std_out > _out,
-             bp::std_err > _err, bp::std_in < _in)
-        , args({"odrive_interface/interface.py"})
+        : args({"interfaces/odrive_proxy.py"})
         , ph(Poco::Process::launch("python3.10", args, &inPipe, &outPipe,
                                    &errPipe))
+        , inPipeStream(inPipe)
+        , outPipeStream(outPipe)
+        , errPipeStream(errPipe)
         , _app_log(app_log)
         , _command_thread([this](std::stop_token stoken) {
             std::string buffer;
@@ -56,12 +53,12 @@ public:
 
             // Waiting for odrive connection
             _app_log.AddLog("[Odrive] Searching for odrive connection\n");
-            _out >> buffer;
+            outPipeStream >> buffer;
             _app_log.AddLog("[Odrive] Found: %s\n", buffer.c_str());
 
             // Waiting for motor calibration
             // _app_log.AddLog("[Odrive] Calibrating motors\n");
-            // _out >> check;
+            // outPipeStream >> check;
             // if(!check) {
             //     _app_log.AddLog("[Odrive] ERR: Calibration timed out\n");
             //     return;
@@ -76,8 +73,8 @@ public:
                     _async_commands.pop();
                     // do not hold the lock because below are blocking I/O
                     lk.unlock();
-                    _in << command << std::endl;
-                    _out >> check;
+                    inPipeStream << command << std::endl;
+                    outPipeStream >> check;
                     if(stoken.stop_requested()) return;
                     if(!check) {
                         _app_log.AddLog("[Odrive] ERR: '%s' failed\n",
@@ -86,7 +83,7 @@ public:
                         continue;
                     }
                     if(opt_callback) {
-                        _out >> buffer;
+                        outPipeStream >> buffer;
                         if(stoken.stop_requested()) return;
                         opt_callback.value()(buffer);
                     }
@@ -98,7 +95,7 @@ public:
         , _connection_thread([this](std::stop_token stoken) {
             bool connected;
             for(;;) {
-                _err >> connected;
+                errPipeStream >> connected;
                 if(stoken.stop_requested()) return;
                 if(!connected) {
                     _app_log.AddLog("[Odrive] WARN: Odrive connection lost!\n");
@@ -112,7 +109,7 @@ public:
         _command_thread.request_stop();
         _connection_thread.request_stop();
         _cv.notify_one();
-        _c.terminate();
+        Poco::Process::kill(ph);
     }
 
     void send_command(const std::string & cmd,

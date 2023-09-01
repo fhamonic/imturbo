@@ -15,6 +15,7 @@
 #include "utils/scrolling_plot_buffer.hpp"
 
 #include "components/odrive.hpp"
+#include "components/arduino.hpp"
 #include "components/oil_pump.hpp"
 
 namespace ImTurbo {
@@ -33,6 +34,7 @@ private:
     std::atomic<float> voltage = 0.0f;
 
     Odrive odrive;
+    Arduino arduino;
     OilPump oil_pump;
 
 public:
@@ -44,6 +46,7 @@ public:
         , gas_valve_position_data("Gas valve pos.")
         , spark_plug_state_data("Spark plug state")
         , odrive(app_log)
+        , arduino("/dev/ttyUSB0", app_log)
         , oil_pump(app_log, odrive) {
         }
 
