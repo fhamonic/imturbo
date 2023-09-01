@@ -11,9 +11,6 @@
 #include <boost/process.hpp>
 namespace bp = boost::process;
 
-#include <Poco/PipeStream.h>
-#include <Poco/Process.h>
-
 #include "utils/app_log.hpp"
 
 namespace ImTurbo {
@@ -24,12 +21,6 @@ private:
     bp::ipstream _out;
     bp::ipstream _err;
     bp::child _c;
-
-    Poco::Pipe outPipe;
-    Poco::Pipe errPipe;
-    Poco::Pipe inPipe;
-    Poco::Process::Args args;
-    Poco::ProcessHandle ph;
 
     AppLog & _app_log;
 
@@ -46,9 +37,6 @@ public:
     Odrive(AppLog & app_log)
         : _c("python3.10 odrive_interface/interface.py", bp::std_out > _out,
              bp::std_err > _err, bp::std_in < _in)
-        , args({"odrive_interface/interface.py"})
-        , ph(Poco::Process::launch("python3.10", args, &inPipe, &outPipe,
-                                   &errPipe))
         , _app_log(app_log)
         , _command_thread([this](std::stop_token stoken) {
             std::string buffer;

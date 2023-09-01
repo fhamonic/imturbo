@@ -8,15 +8,14 @@ BUILD_DIR = build
 
 all: $(BUILD_DIR)
 	@cd $(BUILD_DIR) && \
-	cmake --build . --parallel $(CPUS)
+	cmake --build . --config Release --parallel $(CPUS)
 
 $(BUILD_DIR):
-	@mkdir $(BUILD_DIR) && \
-	mkdir imgui_backends && \
-	mkdir fonts && \
+	mkdir imgui_backends
+	mkdir fonts
+	conan install . -of=$(BUILD_DIR) -b=missing
 	cd $(BUILD_DIR) && \
-	conan install .. --build=missing && \
-	cmake -DCMAKE_BUILD_TYPE=Release -DOPTIMIZE_FOR_NATIVE=ON  ..
+	cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 
 clean:
 	@rm -rf $(BUILD_DIR)

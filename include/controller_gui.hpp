@@ -12,7 +12,6 @@
 #include "imgui_toggle/imgui_toggle_presets.h"
 
 #include "utils/app_log.hpp"
-#include "utils/imvec_operators.hpp"
 #include "utils/scrolling_plot_buffer.hpp"
 
 #include "components/odrive.hpp"
