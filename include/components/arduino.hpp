@@ -34,39 +34,60 @@ public:
     Arduino(const std::string & port_path, AppLog & app_log)
         : _port_path(port_path), _app_log(app_log) {
         _command_thread = std::jthread([this](std::stop_token stoken) {
-            // for(auto && s :
-            // LibSerial::SerialPort{}.GetAvailableSerialPorts())
-            //     _app_log.AddLog("[LibSerial] %s\n", s.c_str());
-
             if(!connectSerialPort()) {
                 _app_log.AddLog("[Arduino] Unable to open port '%s'\n",
                                 _port_path.c_str());
                 return;
             }
 
-            int cpt = 0;
             while(!stoken.stop_requested()) {
-                std::string write_string = "hello!(";
-                write_string.append(std::to_string(cpt));
-                write_string.append(")\n");
-                try {
-                    serial_port.Write(write_string);
-                    std::string read_string;
-                    serial_port.ReadLine(read_string, '\n', 20);
-                    read_string.pop_back();
-                    _app_log.AddLog("[Arduino] Read: '%s'\n",
-                                    read_string.c_str());                    
-                } catch(const std::runtime_error &) {
-                    _app_log.AddLog("[Arduino] Serial connection is lost or timed out!\n");
-                    serial_port.Close();
-                    _app_log.AddLog("[Arduino] Waiting for '%s' to reappear\n",
-                                    _port_path.c_str());
-                    while(!stoken.stop_requested() && !connectSerialPort())
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                    continue;
+                std::unique_lock lk(_m);
+                _cv.wait(lk);
+                while(!_async_commands.empty()) {
+                    auto [command, opt_callback] = _async_commands.front();
+                    // do not hold the lock because below are blocking I/O
+                    lk.unlock();
+                    try {
+                        serial_port.Write(command);
+                        serial_port.WriteByte('\n');
+                        std::string check;
+                        serial_port.ReadLine(check, '\n', 20);
+                        check.pop_back();
+                        if(check != "OK") {
+                            _app_log.AddLog(
+                                "[Arduino] ERR: '%s' failed: '%s'\n",
+                                command.c_str(), check.c_str());
+                            lk.lock();
+                            _async_commands.pop();
+                            continue;
+                        }
+                        if(opt_callback) {
+                            std::string response;
+                            serial_port.ReadLine(response, '\n', 20);
+                            response.pop_back();
+                            if(stoken.stop_requested()) return;
+                            opt_callback.value()(response);
+                        }
+
+                    } catch(const std::runtime_error &) {
+                        _app_log.AddLog(
+                            "[Arduino] Serial connection is lost or timed "
+                            "out!\n");
+                        serial_port.Close();
+                        _app_log.AddLog(
+                            "[Arduino] Waiting for '%s' to reappear\n",
+                            _port_path.c_str());
+                        while(!stoken.stop_requested() && !connectSerialPort())
+                            std::this_thread::sleep_for(
+                                std::chrono::milliseconds(100));
+                        lk.lock();
+                        continue;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    lk.lock();
+                    _async_commands.pop();
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                ++cpt;
+                lk.unlock();
             }
         });
     }
@@ -79,16 +100,19 @@ public:
     bool connectSerialPort() {
         try {
             serial_port.Open(_port_path);
-        } catch(const LibSerial::OpenFailed &) {
+
+            serial_port.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
+            serial_port.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
+            serial_port.SetFlowControl(
+                LibSerial::FlowControl::FLOW_CONTROL_NONE);
+            serial_port.SetParity(LibSerial::Parity::PARITY_NONE);
+            serial_port.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
+
+            arduinoHandshake();
+        } catch(const std::runtime_error &) {
+            if(serial_port.IsOpen()) serial_port.Close();
             return false;
         }
-        serial_port.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
-        serial_port.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
-        serial_port.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
-        serial_port.SetParity(LibSerial::Parity::PARITY_NONE);
-        serial_port.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
-
-        arduinoHandshake();
         return true;
     }
 

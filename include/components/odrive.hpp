@@ -79,7 +79,7 @@ public:
                     if(!check) {
                         _app_log.AddLog("[Odrive] ERR: '%s' failed\n",
                                         command.c_str());
-                        _async_commands.pop();
+                        lk.lock();
                         continue;
                     }
                     if(opt_callback) {

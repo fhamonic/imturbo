@@ -2,8 +2,8 @@
 #define IMTURBO_CONTROLLER_GUI_HPP
 
 #include <atomic>
-#include <string>
 #include <cmath>
+#include <string>
 
 #include <imgui.h>
 // #include <implot.h> pragma once fails
@@ -14,8 +14,8 @@
 #include "utils/app_log.hpp"
 #include "utils/scrolling_plot_buffer.hpp"
 
-#include "components/odrive.hpp"
 #include "components/arduino.hpp"
+#include "components/odrive.hpp"
 #include "components/oil_pump.hpp"
 
 namespace ImTurbo {
@@ -47,17 +47,15 @@ public:
         , spark_plug_state_data("Spark plug state")
         , odrive(app_log)
         , arduino("/dev/ttyUSB0", app_log)
-        , oil_pump(app_log, odrive) {
-        }
+        , oil_pump(app_log, odrive) {}
 
     void show_settings() {
         ImGui::SliderFloat("Scrolling plot history", &history, 1, 30, "%.1f s");
     }
 
     void show(ImVec2 pos, ImVec2 size) {
-        odrive.send_command("v", [this](const std::string & s) {
-            voltage = std::stof(s);
-        });
+        odrive.send_command(
+            "v", [this](const std::string & s) { voltage = std::stof(s); });
 
         static float t = 0;
         t += ImGui::GetIO().DeltaTime;
@@ -137,8 +135,11 @@ public:
 
         ImGui::SetCursorPos(
             ImVec2{200.0f, 170.0f + 120.0F / 2 - config.Size.y / 2});
-        if(ImGui::Toggle("##toggle_oil_pump", &b, config))
-            ;
+        if(ImGui::Toggle("##toggle_oil_pump", &b, config)) {
+            arduino.send_command("hello!", [this](const std::string & s) {
+                app_log.AddLog("[Arduino] '%s'\n", s.c_str());
+            });
+        }
         ImGui::SetCursorPos(ImVec2{size.x / 2 - config.Size.x + 80, 170.0F});
         if(ImPlot::BeginPlot("##actuators_plot", ImVec2(-1, 120),
                              ImPlotFlags_NoFrame | ImPlotFlags_NoInputs)) {
