@@ -136,7 +136,7 @@ public:
         ImGui::SetCursorPos(
             ImVec2{200.0f, 170.0f + 120.0F / 2 - config.Size.y / 2});
         if(ImGui::Toggle("##toggle_oil_pump", &b, config)) {
-            arduino.send_command("hello!", [this](const std::string & s) {
+            arduino.send_command("g", [this](const std::string & s) {
                 app_log.AddLog("[Arduino] '%s'\n", s.c_str());
             });
         }
