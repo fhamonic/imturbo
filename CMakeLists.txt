@@ -25,7 +25,6 @@ find_package(imgui REQUIRED)
 find_package(implot REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(Boost REQUIRED)
 find_package(Poco REQUIRED)
 find_package(libserial REQUIRED)
 
